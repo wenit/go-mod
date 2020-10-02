@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,6 +22,7 @@ func Package(path string, version string, outputDirectory string, excludes strin
 	if err != nil {
 		return fmt.Errorf("get module file: %w", err)
 	}
+	log.Printf("项目打包完成，输出目录：%s", outputDirectory)
 	return nil
 }
 
@@ -65,6 +67,7 @@ func Install(path string, version string, outputDirectory string, excludes strin
 	if err != nil {
 		return fmt.Errorf("get module file: %w", err)
 	}
+	log.Printf("项目打包完成，输出目录：%s", outputDirectory)
 
 	zipFile := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".zip")
 
@@ -80,12 +83,13 @@ func Install(path string, version string, outputDirectory string, excludes strin
 		}
 	}
 
+	// 解压文件到 $GOBIN/pkg/mod
 	err = common.Unzip(zipFile, modulePath)
 	if err != nil {
 		return err
 	}
+	log.Printf("项目解压至本地mod仓库，输出目录：%s", modulePath)
 
-	// github.com/wenit/go-mod\@v
 	prefix := fmt.Sprintf("%s/@v", moduleFile.Module.Mod.Path)
 	downloadPath := common.GetGoModuleCacheDownloadPath()
 
@@ -96,12 +100,26 @@ func Install(path string, version string, outputDirectory string, excludes strin
 	dstInfoFile := filepath.Join(downloadPath, prefix, moduleFile.Module.Mod.Version+".info")
 	dstModFile := filepath.Join(downloadPath, prefix, moduleFile.Module.Mod.Version+".mod")
 	dstZipFile := filepath.Join(downloadPath, prefix, moduleFile.Module.Mod.Version+".zip")
+
+	// copy文件至缓存目录 ： $GOBIN/pkg/mod/cache/download
 	// 1、copy info
-	common.CopyFile(srcInfoFile, dstInfoFile)
+	err = common.CopyFile(srcInfoFile, dstInfoFile)
+	if err != nil {
+		return err
+	}
+	log.Printf("复制info文件至缓存目录[%s]完成", dstZipFile)
 	// 2、copy mod
-	common.CopyFile(srcModFile, dstModFile)
+	err = common.CopyFile(srcModFile, dstModFile)
+	if err != nil {
+		return err
+	}
+	log.Printf("复制mod文件至缓存目录[%s]完成", dstZipFile)
 	// 3、copy zip
-	common.CopyFile(srcZipFile, dstZipFile)
+	err = common.CopyFile(srcZipFile, dstZipFile)
+	if err != nil {
+		return err
+	}
+	log.Printf("复制zip文件至缓存目录[%s]完成", dstZipFile)
 
 	return nil
 }

@@ -1,6 +1,7 @@
 package clean
 
 import (
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -31,8 +32,12 @@ func GetSubCmd() *cobra.Command {
 func run(args []string) error {
 
 	err := os.RemoveAll(toDir)
-
-	return err
+	if err != nil {
+		log.Printf("清理目录：%s 失败", toDir)
+		return err
+	}
+	log.Printf("清理目录：%s 成功", toDir)
+	return nil
 }
 
 func init() {

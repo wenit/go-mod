@@ -2,7 +2,6 @@ package pack
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -19,7 +18,7 @@ var (
 // 子命令
 var subCmd = &cobra.Command{
 	Use:   "package",
-	Short: "Package your Go modules",
+	Short: "项目打包，用于发布",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return run(args)
 	},
@@ -36,7 +35,6 @@ func run(args []string) error {
 
 	outputDirectory := toDir
 
-	log.Printf("Packing module in path %s...", outputDirectory)
 	if err := pack.Package(path, version, outputDirectory, excludes); err != nil {
 		return fmt.Errorf("package module: %w", err)
 	}

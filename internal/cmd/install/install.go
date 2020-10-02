@@ -2,7 +2,6 @@ package install
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -35,7 +34,6 @@ func run(args []string) error {
 	version := ver
 	outputDirectory := toDir
 
-	log.Printf("Packing module in path %s...", outputDirectory)
 	if err := pack.Install(path, version, outputDirectory, excludes); err != nil {
 		return fmt.Errorf("package module: %w", err)
 	}
