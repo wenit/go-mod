@@ -88,9 +88,21 @@
 
 ## 安装步骤
 
-```
-go get github.com/wenit/go-mod
-```
+**方式一**：安装最新版本
+
+git clone源码，然后执行`scripts`中的`build.sh`脚本进行打包，生成文件在项目的`releases`目录下
+
+**方式二**：直接Releases中直接下载对应版本
+
+windows版本： [go-mod_0.9.0_windows_amd64.exe](https://github.com/wenit/go-mod/releases/download/v0.9.0/go-mod_0.9.0_windows_amd64.exe)
+
+linux版本：[go-mod_0.9.0_linux_amd64](https://github.com/wenit/go-mod/releases/download/v0.9.0/go-mod_0.9.0_linux_amd64)
+
+mac版本：[go-mod_0.9.0_darwin_amd64](https://github.com/wenit/go-mod/releases/download/v0.9.0/go-mod_0.9.0_darwin_amd64)
+
+
+
+下载完成后，重名为简单名字比如`go-mod.exe`，然后配置好PATH环境变量就可以直接使用了
 
 
 
@@ -104,7 +116,7 @@ go get github.com/wenit/go-mod
 
 2）配置GONOSUMDB
 
-`GONOSUMDB` Go环境变量用于设置哪些前缀的模块都被视为私有模块，不进行HASH检验，通过逗号分隔配置多个匹配路径，因为我们的打包项目未生成hash校验值，所以需要配置，
+`GONOSUMDB` Go环境变量用于设置哪些前缀的模块都被视为私有模块，不进行HASH检验，通过逗号分隔配置多个匹配路径，因为我们的打包项目未生成hash校验值，所以需要配置，**后续实现校验文件，就无需进行配置**
 
 ```
 go env -w GONOSUMDB=github.com/wenit
@@ -217,4 +229,12 @@ go-mod.exe install -f F:/github/go-mod -v v1.1.0
 2020/10/02 11:00:44 复制mod文件至缓存目录[C:\Users\wenit\go\pkg\mod\cache\download\github.com\wenit\go-mod\@v\v1.1.0.zip] 完成
 2020/10/02 11:00:44 复制zip文件至缓存目录[C:\Users\wenit\go\pkg\mod\cache\download\github.com\wenit\go-mod\@v\v1.1.0.zip] 完成
 ```
+
+
+
+## 参考引用
+
+
+
+本项目参考：[pacmod](https://github.com/plexsystems/pacmod) 实现
 
