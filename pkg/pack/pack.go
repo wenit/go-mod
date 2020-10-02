@@ -58,6 +58,10 @@ func module(path string, version string, outputDirectory string, excludes string
 		return nil, fmt.Errorf("copy module file: %w", err)
 	}
 
+	if err := createZiphash(moduleFile, outputDirectory); err != nil {
+		return nil, fmt.Errorf("createZiphash file: %w", err)
+	}
+
 	return moduleFile, nil
 }
 
@@ -96,10 +100,12 @@ func Install(path string, version string, outputDirectory string, excludes strin
 	srcInfoFile := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".info")
 	srcModFile := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".mod")
 	srcZipFile := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".zip")
+	srcZiphashFile := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".ziphash")
 
 	dstInfoFile := filepath.Join(downloadPath, prefix, moduleFile.Module.Mod.Version+".info")
 	dstModFile := filepath.Join(downloadPath, prefix, moduleFile.Module.Mod.Version+".mod")
 	dstZipFile := filepath.Join(downloadPath, prefix, moduleFile.Module.Mod.Version+".zip")
+	dstZiphashFile := filepath.Join(downloadPath, prefix, moduleFile.Module.Mod.Version+".ziphash")
 
 	// copy文件至缓存目录 ： $GOBIN/pkg/mod/cache/download
 	// 1、copy info
@@ -120,6 +126,13 @@ func Install(path string, version string, outputDirectory string, excludes strin
 		return err
 	}
 	log.Printf("复制zip文件至缓存目录[%s]完成", dstZipFile)
+
+	// 4、copy ziphash
+	err = common.CopyFile(srcZiphashFile, dstZiphashFile)
+	if err != nil {
+		return err
+	}
+	log.Printf("复制ziphash文件至缓存目录[%s]完成", dstZiphashFile)
 
 	return nil
 }
@@ -198,6 +211,27 @@ func createInfoFile(moduleFile *modfile.File, outputDirectory string) error {
 
 	if _, err := file.Write(infoBytes); err != nil {
 		return fmt.Errorf("write info file: %w", err)
+	}
+
+	return nil
+}
+
+func createZiphash(moduleFile *modfile.File, outputDirectory string) error {
+	zipFilePath := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".zip")
+	hashFilePath := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".ziphash")
+	file, err := os.Create(hashFilePath)
+	if err != nil {
+		return fmt.Errorf("create hash file: %w", err)
+	}
+	defer file.Close()
+
+	hashValue := common.ZipHash(zipFilePath)
+	if hashValue == "" {
+		return fmt.Errorf("generate ziphash file: %w", err)
+	}
+
+	if _, err := file.Write([]byte(hashValue)); err != nil {
+		return fmt.Errorf("write ziphash file: %w", err)
 	}
 
 	return nil

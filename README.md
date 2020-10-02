@@ -56,7 +56,7 @@
 1. 项目需要托管在公共仓库上，比如GitHub，GitLab等，对于内部私有项目存在一些问题
 2. 虽然一些办法解决私有项目访问权限的问题，但是配置过于繁琐，详见 [Go Modules私有项目配置](https://www.jianshu.com/p/ca4404512cf3)
 
-`Java`、`nodejs`一样通过`maven`、`npm`去进行管理，java、nodejs私有包都可以通过nexus发布进行管理，解决项目内部私有话访问问题，我希望Go也有这样方式；找了很多资料，发现 [athens](https://github.com/gomods/athens) 是一个比较理想的私有化包管理方案，详解介绍：[不一样的go语言-athens私仓安装](https://www.cnblogs.com/laud/p/athens.html)，虽然解决私有包下载文档，但是如何比较友好的发布至`athens `，没有提供一个好的办法。
+`Java`、`nodejs`一样通过`maven`、`npm`去进行管理，java、nodejs私有包都可以通过nexus发布进行管理，解决项目内部私有话访问问题，我希望Go也有这样方式；找了很多资料，发现 [athens](https://github.com/gomods/athens) 是一个比较理想的私有化包管理方案，详解介绍：[不一样的go语言-athens私仓安装](https://www.cnblogs.com/laud/p/athens.html)，虽然解决私有包下载问题，但是如何比较友好的发布至`athens`，没有提供一个好的办法。
 
 
 

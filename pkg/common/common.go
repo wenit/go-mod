@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/mod/sumdb/dirhash"
 )
 
 var defaultFilter = []string{".svn", ".git", ".vscode"}
@@ -200,4 +203,14 @@ func Unzip(zipFile, dest string) error {
 		rc.Close()
 	}
 	return nil
+}
+
+// ZipHash 计算zip文件hash值
+func ZipHash(zipFile string) string {
+	hash, err := dirhash.HashZip(zipFile, dirhash.Hash1)
+	if err != nil {
+		log.Println("计算ZipHash失败：", err)
+		return ""
+	}
+	return hash
 }

@@ -57,3 +57,13 @@ func TestUnzip(t *testing.T) {
 		t.Log("解压文件错误：", err)
 	}
 }
+
+func TestZipHash(t *testing.T) {
+	// zipFile := "C:/Users/zwb/go/pkg/mod/cache/download/github.com/wenit/go-mod/@v/v1.2.0.zip"
+	zipFile := "C:/Users/zwb/go/pkg/mod/cache/download/github.com/wenit/go-mod/@v/v0.9.0.zip"
+	// zipFile := "F:/github/go-mod/releases/0.9.0/windows/target/v1.2.0.zip"
+
+	hash := ZipHash(zipFile)
+
+	t.Log("hash:", hash)
+}
