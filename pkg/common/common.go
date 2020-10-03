@@ -155,16 +155,8 @@ func compress(rel string, path string, zw *zip.Writer) error {
 	if err != nil {
 		return err
 	}
-	info, err := file.Stat()
-	if err != nil {
-		return err
-	}
-	header, err := zip.FileInfoHeader(info)
-	if err != nil {
-		return err
-	}
-	header.Name = rel
-	writer, err := zw.CreateHeader(header)
+
+	writer, err := zw.Create(rel)
 	if err != nil {
 		return err
 	}

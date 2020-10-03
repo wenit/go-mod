@@ -60,7 +60,7 @@ func TestUnzip(t *testing.T) {
 
 func TestZipHash(t *testing.T) {
 	// zipFile := "C:/Users/zwb/go/pkg/mod/cache/download/github.com/wenit/go-mod/@v/v1.2.0.zip"
-	zipFile := "C:/Users/zwb/go/pkg/mod/cache/download/github.com/wenit/go-mod/@v/v0.9.0.zip"
+	zipFile := "F:/github/go-mod/cmd/target/v1.4.0.zip"
 	// zipFile := "F:/github/go-mod/releases/0.9.0/windows/target/v1.2.0.zip"
 
 	hash := ZipHash(zipFile)
