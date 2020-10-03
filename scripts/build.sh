@@ -24,19 +24,18 @@ version_file=$work_dir
 # 获取版本号
 version=$(cat $root_dir/VERSION)
 
-# 项目名称
-project_name=`grep module ${root_dir}/go.mod|head -n 1|awk '{print $2}'`
+#  MOD名称
+module_name=`grep module ${root_dir}/go.mod|head -n 1|awk '{print $2}'`
 
-array=(${project_name//\// })
-
-for var in ${array[@]}
-do
-   project_name=$var
-done
-
+array=(${module_name//\// })
 
 # 可执行文件名称
-app_name=$project_name
+app_name=$module_name
+for var in ${array[@]}
+do
+   app_name=$var
+done
+
 
 # 编译包目录
 release_dir=$root_dir/releases/$version
@@ -50,7 +49,7 @@ app_arch=amd64
 # 打包
 build_app(){
     app_os=$1
-    echo "[$(date)]开始打包[${project_name}_${version}_${app_os}_${app_arch}]..."
+    echo "[$(date)]开始打包[${app_name}_${version}_${app_os}_${app_arch}]..."
 
     # 编译包目录
     release_os_dir=${release_dir}/${app_os}
@@ -62,7 +61,7 @@ build_app(){
     if [ "$app_os" = "windows" ];then
         app_suffix=".exe"
     fi
-    CGO_ENABLED=0 GOARCH=$app_arch GOOS=$app_os go build -o ${release_os_dir}/${project_name}_${version}_${app_os}_${app_arch}${app_suffix} -ldflags="-w -s -X '${project_name}/internal/version.version=${version}' -X '${project_name}/internal/version.buildDate=$(date '+%Y-%m-%d %H:%M:%S')'"
+    CGO_ENABLED=0 GOARCH=$app_arch GOOS=$app_os go build -o ${release_os_dir}/${app_name}_${version}_${app_os}_${app_arch}${app_suffix} -ldflags="-w -s -X '${module_name}/internal/version.version=${version}' -X '${module_name}/internal/version.buildDate=$(date '+%Y-%m-%d %H:%M:%S')'"
 }
 
 # 全平台打包
@@ -80,11 +79,11 @@ build_app_all_platforms() {
 build_app_module(){
     #-------------------client-------------------
     # 可执行文件名称
-    app_name=$project_name
+    app_name=$app_name
     cd $root_dir/cmd
-    echo "[$(date)]==================[$project_name]打包开始=================="
+    echo "[$(date)]==================[$app_name]打包开始=================="
     build_app_all_platforms
-    echo "[$(date)]==================[$project_name]打包结束=================="
+    echo "[$(date)]==================[$app_name]打包结束=================="
     echo ""
 }
 
