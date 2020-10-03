@@ -95,11 +95,11 @@ git clone源码，然后执行`scripts`中的`build.sh`脚本进行打包，生�
 
 **方式二**：直接Releases中直接下载对应版本
 
-windows版本： [go-mod_0.9.0_windows_amd64.exe](https://github.com/wenit/go-mod/releases/download/v0.9.0/go-mod_0.9.0_windows_amd64.exe)
+windows版本： [go-mod_0.9.1_windows_amd64.exe](https://github.com/wenit/go-mod/releases/download/v0.9.1/go-mod_0.9.1_windows_amd64.exe)
 
-linux版本：[go-mod_0.9.0_linux_amd64](https://github.com/wenit/go-mod/releases/download/v0.9.0/go-mod_0.9.0_linux_amd64)
+linux版本：[go-mod_0.9.1_linux_amd64](https://github.com/wenit/go-mod/releases/download/v0.9.1/go-mod_0.9.1_linux_amd64)
 
-mac版本：[go-mod_0.9.0_darwin_amd64](https://github.com/wenit/go-mod/releases/download/v0.9.0/go-mod_0.9.0_darwin_amd64)
+mac版本：[go-mod_0.9.1_darwin_amd64](https://github.com/wenit/go-mod/releases/download/v0.9.1/go-mod_0.9.1_darwin_amd64)
 
 
 
