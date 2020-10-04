@@ -18,7 +18,17 @@ import (
 
 // Package 打包
 func Package(path string, version string, outputDirectory string, excludes string) error {
-	_, err := module(path, version, outputDirectory, excludes)
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("get abs path of module path: %w", err)
+	}
+	packageInfo := NewPackageInfo()
+	packageInfo.Excludes = excludes
+	packageInfo.Version = version
+	packageInfo.SourceDir = path
+	packageInfo.TargetDir = outputDirectory
+
+	err = module(packageInfo)
 	if err != nil {
 		return fmt.Errorf("get module file: %w", err)
 	}
@@ -26,114 +36,42 @@ func Package(path string, version string, outputDirectory string, excludes strin
 	return nil
 }
 
-func module(path string, version string, outputDirectory string, excludes string) (*modfile.File, error) {
-	path, err := filepath.Abs(path)
-	if err != nil {
-		return nil, fmt.Errorf("get abs path of module path: %w", err)
-	}
-
+func pack(packageInfo *PackageInfo) error {
+	return module(packageInfo)
+}
+func module(packageInfo *PackageInfo) error {
+	outputDirectory := packageInfo.TargetDir
+	path := packageInfo.SourceDir
+	version := packageInfo.Version
 	if !common.PathExists(outputDirectory) {
 		err := common.MkDirs(outputDirectory)
 		if err != nil {
-			return nil, fmt.Errorf("create output directory: %s,error %w", outputDirectory, err)
+			return fmt.Errorf("create output directory: %s,error %w", outputDirectory, err)
 		}
 	}
 
 	moduleFile, err := getModuleFile(path, version)
 	if err != nil {
-		return nil, fmt.Errorf("get module file: %w", err)
-	}
-
-	// common.ZipFilter()
-
-	if err := createZipArchiveCommon(path, moduleFile, outputDirectory, excludes); err != nil {
-		return nil, fmt.Errorf("create zip archive: %w", err)
-	}
-
-	if err := createInfoFile(moduleFile, outputDirectory); err != nil {
-		return nil, fmt.Errorf("create info file: %w", err)
-	}
-
-	if err := copyModuleFile(path, moduleFile, outputDirectory); err != nil {
-		return nil, fmt.Errorf("copy module file: %w", err)
-	}
-
-	if err := createZiphash(moduleFile, outputDirectory); err != nil {
-		return nil, fmt.Errorf("createZiphash file: %w", err)
-	}
-
-	return moduleFile, nil
-}
-
-// Install 本地安装
-func Install(path string, version string, outputDirectory string, excludes string) error {
-	moduleFile, err := module(path, version, outputDirectory, excludes)
-	if err != nil {
 		return fmt.Errorf("get module file: %w", err)
 	}
-	log.Printf("项目打包完成，输出目录：%s", outputDirectory)
+	packageInfo.ModObj = moduleFile
+	packageInfo.ModName = moduleFile.Module.Mod.Path
 
-	zipFile := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".zip")
-
-	modulePath := common.GetGoModulePath()
-	if modulePath == "" {
-		return fmt.Errorf("get module root dir error")
+	if err := createZipArchiveCommon(packageInfo); err != nil {
+		return fmt.Errorf("create zip archive: %w", err)
 	}
 
-	if !common.PathExists(modulePath) {
-		err := common.MkDirs(modulePath)
-		if err != nil {
-			return err
-		}
+	if err := createInfoFile(packageInfo); err != nil {
+		return fmt.Errorf("create info file: %w", err)
 	}
 
-	// 解压文件到 $GOBIN/pkg/mod
-	err = common.Unzip(zipFile, modulePath)
-	if err != nil {
-		return err
+	if err := copyModuleFile(packageInfo); err != nil {
+		return fmt.Errorf("copy module file: %w", err)
 	}
-	log.Printf("项目解压至本地mod仓库，输出目录：%s", modulePath)
 
-	prefix := fmt.Sprintf("%s/@v", moduleFile.Module.Mod.Path)
-	downloadPath := common.GetGoModuleCacheDownloadPath()
-
-	srcInfoFile := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".info")
-	srcModFile := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".mod")
-	srcZipFile := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".zip")
-	srcZiphashFile := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".ziphash")
-
-	dstInfoFile := filepath.Join(downloadPath, prefix, moduleFile.Module.Mod.Version+".info")
-	dstModFile := filepath.Join(downloadPath, prefix, moduleFile.Module.Mod.Version+".mod")
-	dstZipFile := filepath.Join(downloadPath, prefix, moduleFile.Module.Mod.Version+".zip")
-	dstZiphashFile := filepath.Join(downloadPath, prefix, moduleFile.Module.Mod.Version+".ziphash")
-
-	// copy文件至缓存目录 ： $GOBIN/pkg/mod/cache/download
-	// 1、copy info
-	err = common.CopyFile(srcInfoFile, dstInfoFile)
-	if err != nil {
-		return err
+	if err := createZiphash(packageInfo); err != nil {
+		return fmt.Errorf("createZiphash file: %w", err)
 	}
-	log.Printf("复制info文件至缓存目录[%s]完成", dstZipFile)
-	// 2、copy mod
-	err = common.CopyFile(srcModFile, dstModFile)
-	if err != nil {
-		return err
-	}
-	log.Printf("复制mod文件至缓存目录[%s]完成", dstZipFile)
-	// 3、copy zip
-	err = common.CopyFile(srcZipFile, dstZipFile)
-	if err != nil {
-		return err
-	}
-	log.Printf("复制zip文件至缓存目录[%s]完成", dstZipFile)
-
-	// 4、copy ziphash
-	err = common.CopyFile(srcZiphashFile, dstZiphashFile)
-	if err != nil {
-		return err
-	}
-	log.Printf("复制ziphash文件至缓存目录[%s]完成", dstZiphashFile)
-
 	return nil
 }
 
@@ -164,17 +102,26 @@ func getModuleFile(path string, version string) (*modfile.File, error) {
 	return moduleFile, nil
 }
 
-func createZipArchiveCommon(path string, moduleFile *modfile.File, outputDirectory string, excludes string) error {
-	outputPath := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".zip")
-	prefix := fmt.Sprintf("%s@%s/", moduleFile.Module.Mod.Path, moduleFile.Module.Mod.Version)
+func createZipArchiveCommon(packageInfo *PackageInfo) error {
+	outputDirectory := packageInfo.TargetDir
+	path := packageInfo.SourceDir
+	version := packageInfo.Version
+	excludes := packageInfo.Excludes
+	outputPath := filepath.Join(outputDirectory, version+".zip")
+	packageInfo.ZipFilePath = outputPath
+	prefix := fmt.Sprintf("%s@%s/", packageInfo.ModObj.Module.Mod.Path, version)
 	filter := strings.Split(excludes, ",")
 	return common.ZipFilter(path, outputPath, prefix, filter)
 }
-func createZipArchive(path string, moduleFile *modfile.File, outputDirectory string) error {
-	outputPath := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".zip")
+
+// func createZipArchive(path string, moduleFile *modfile.File, outputDirectory string) error {
+func createZipArchive(packageInfo *PackageInfo) error {
+	outputDirectory := packageInfo.TargetDir
+	version := packageInfo.Version
+	outputPath := filepath.Join(outputDirectory, version+".zip")
 
 	var zipContents bytes.Buffer
-	if err := zip.CreateFromDir(&zipContents, moduleFile.Module.Mod, path); err != nil {
+	if err := zip.CreateFromDir(&zipContents, packageInfo.ModObj.Module.Mod, packageInfo.SourceDir); err != nil {
 		return fmt.Errorf("create zip from dir: %w", err)
 	}
 
@@ -185,8 +132,11 @@ func createZipArchive(path string, moduleFile *modfile.File, outputDirectory str
 	return nil
 }
 
-func createInfoFile(moduleFile *modfile.File, outputDirectory string) error {
-	infoFilePath := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".info")
+func createInfoFile(packageInfo *PackageInfo) error {
+	outputDirectory := packageInfo.TargetDir
+	version := packageInfo.Version
+	infoFilePath := filepath.Join(outputDirectory, version+".info")
+	packageInfo.InfoFilePath = infoFilePath
 	file, err := os.Create(infoFilePath)
 	if err != nil {
 		return fmt.Errorf("create info file: %w", err)
@@ -200,7 +150,7 @@ func createInfoFile(moduleFile *modfile.File, outputDirectory string) error {
 
 	currentTime := getInfoFileFormattedTime(time.Now())
 	info := infoFile{
-		Version: moduleFile.Module.Mod.Version,
+		Version: version,
 		Time:    currentTime,
 	}
 
@@ -216,9 +166,14 @@ func createInfoFile(moduleFile *modfile.File, outputDirectory string) error {
 	return nil
 }
 
-func createZiphash(moduleFile *modfile.File, outputDirectory string) error {
-	zipFilePath := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".zip")
-	hashFilePath := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".ziphash")
+func createZiphash(packageInfo *PackageInfo) error {
+	outputDirectory := packageInfo.TargetDir
+	version := packageInfo.Version
+	zipFilePath := filepath.Join(outputDirectory, version+".zip")
+	hashFilePath := filepath.Join(outputDirectory, version+".ziphash")
+	packageInfo.ZipFilePath = zipFilePath
+	packageInfo.ZipHashFilePath = hashFilePath
+
 	file, err := os.Create(hashFilePath)
 	if err != nil {
 		return fmt.Errorf("create hash file: %w", err)
@@ -242,13 +197,18 @@ func getInfoFileFormattedTime(currentTime time.Time) string {
 	return currentTime.Format(infoFileTimeFormat)
 }
 
-func copyModuleFile(path string, moduleFile *modfile.File, outputDirectory string) error {
+func copyModuleFile(packageInfo *PackageInfo) error {
+	outputDirectory := packageInfo.TargetDir
+	version := packageInfo.Version
+	path := packageInfo.SourceDir
 	if outputDirectory == "." {
 		return nil
 	}
 
 	sourcePath := filepath.Join(path, "go.mod")
-	destinationPath := filepath.Join(outputDirectory, moduleFile.Module.Mod.Version+".mod")
+	destinationPath := filepath.Join(outputDirectory, version+".mod")
+
+	packageInfo.ModFilePath = destinationPath
 
 	if sourcePath == destinationPath {
 		return nil

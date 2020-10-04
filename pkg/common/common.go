@@ -6,8 +6,10 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"golang.org/x/mod/sumdb/dirhash"
@@ -26,6 +28,43 @@ func GetGoModulePath() string {
 	goPath := GetGoPath()
 	modulePath := filepath.Join(goPath, "pkg/mod")
 	return modulePath
+}
+
+// GetAPIProxyURL 获取API代理服务地址
+func GetAPIProxyURL() (string, error) {
+	goproxyURL := os.Getenv("GOPROXY")
+	proxyAddrs := strings.Split(goproxyURL, ",")
+	firstProxy := proxyAddrs[0]
+	u, err := url.Parse(firstProxy)
+	if err != nil {
+		return "", err
+	}
+	portStr := u.Port()
+	host := strings.Split(u.Host, ":")[0]
+
+	var port int
+	if u.Scheme == "http" {
+		if len(portStr) == 0 {
+			port = 80
+		} else {
+			port, err = strconv.Atoi(portStr)
+			if err != nil {
+				return "", err
+			}
+		}
+	} else if u.Scheme == "https" {
+		if len(portStr) == 0 {
+			port = 443
+		} else {
+			port, err = strconv.Atoi(portStr)
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+	port = port + 1
+	apiProxyURL := fmt.Sprintf("%s://%s:%d/upload", u.Scheme, host, port)
+	return apiProxyURL, nil
 }
 
 // CopyFile 拷贝文件
@@ -73,7 +112,7 @@ func PathExists(path string) bool {
 
 // MkDirs 创建文件夹
 func MkDirs(path string) error {
-	err := os.Mkdir(path, os.ModePerm)
+	err := os.MkdirAll(path, os.ModePerm)
 	return err
 }
 

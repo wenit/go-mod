@@ -21,6 +21,15 @@
             "program": "${workspaceFolder}/cmd",
             "env": {},
             "args": ["install","-f","F:/github/go-mod","-t","F:/github/go-mod/target","-v","v0.9.0"]
+        },
+        {
+            "name": "deploy",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd",
+            "env": {},
+            "args": ["deploy","-f","F:/github/go-mod","-t","F:/github/go-mod/target","-v","v1.1.2"]
         }
     ]
 }

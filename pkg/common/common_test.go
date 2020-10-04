@@ -1,6 +1,7 @@
 package common
 
 import (
+	"os"
 	"testing"
 )
 
@@ -66,4 +67,37 @@ func TestZipHash(t *testing.T) {
 	hash := ZipHash(zipFile)
 
 	t.Log("hash:", hash)
+}
+
+func TestGetAPIProxyURL(t *testing.T) {
+	url, err := GetAPIProxyURL()
+
+	if err != nil {
+		t.Log("解析失败：", err)
+	}
+	t.Log(url)
+
+	os.Setenv("GOPROXY", "http://mirrors.aliyun.com")
+	url, err = GetAPIProxyURL()
+
+	if err != nil {
+		t.Log("解析失败：", err)
+	}
+	t.Log(url)
+
+	os.Setenv("GOPROXY", "http://127.0.0.1:8081")
+	url, err = GetAPIProxyURL()
+
+	if err != nil {
+		t.Log("解析失败：", err)
+	}
+	t.Log(url)
+
+	os.Setenv("GOPROXY", "http://localhost:8081")
+	url, err = GetAPIProxyURL()
+
+	if err != nil {
+		t.Log("解析失败：", err)
+	}
+	t.Log(url)
 }

@@ -3,7 +3,7 @@
 
 | 发布日期       | 版本号 | 作者 | 描述 |
 | -------------- | ------ | ---- | ---- |
-| 2020年10月03日 | 0.9.1  | zwb  |      |
+| 2020年10月03日 | 0.9.2  | zwb  |      |
 
 ## 目录
 
@@ -13,6 +13,7 @@
 
 | 更新日期       | 版本号 | 作者 | 描述     |
 | -------------- | ------ | ---- | -------- |
+| 2020年10月04日 | 0.9.2  | zwb  | 增加部署功能    |
 | 2020年10月03日 | 0.9.1  | zwb  | 优化打zip包逻辑 |
 | 2020年10月02日 | 0.9.0  | zwb  | 初始版本 |
 
@@ -77,9 +78,13 @@
 
   将本地Go Module项目安装到本地Go mod缓存目录，方便
 
-- [ ] 发布
+- [x] 发布
 
-  将本地Go Module项目并发布至`athens`上，方便团队使用，**待实现**
+  - [x] 将本地Go Module项目并发布至`go-mod-proxy`
+
+    `go-mod-proxy`的[安装部署](https://github.com/wenit/go-mod-proxy)
+
+  - [ ] 将本地Go Module项目并发布至`athens`，**待实现**
 
 - [x] 清理
 
@@ -95,11 +100,11 @@ git clone源码，然后执行`scripts`中的`build.sh`脚本进行打包，生�
 
 **方式二**：直接Releases中直接下载对应版本
 
-windows版本： [go-mod_0.9.1_windows_amd64.exe](https://github.com/wenit/go-mod/releases/download/v0.9.1/go-mod_0.9.1_windows_amd64.exe)
+windows版本： [go-mod_0.9.2_windows_amd64.exe](https://github.com/wenit/go-mod/releases/download/v0.9.2/go-mod_0.9.2_windows_amd64.exe)
 
-linux版本：[go-mod_0.9.1_linux_amd64](https://github.com/wenit/go-mod/releases/download/v0.9.1/go-mod_0.9.1_linux_amd64)
+linux版本：[go-mod_0.9.2_linux_amd64](https://github.com/wenit/go-mod/releases/download/v0.9.2/go-mod_0.9.2_linux_amd64)
 
-mac版本：[go-mod_0.9.1_darwin_amd64](https://github.com/wenit/go-mod/releases/download/v0.9.1/go-mod_0.9.1_darwin_amd64)
+mac版本：[go-mod_0.9.2_darwin_amd64](https://github.com/wenit/go-mod/releases/download/v0.9.2/go-mod_0.9.2_darwin_amd64)
 
 
 
@@ -231,11 +236,53 @@ go-mod.exe install -f F:/github/go-mod -v v1.1.0
 2020/10/02 11:00:44 复制zip文件至缓存目录[C:\Users\wenit\go\pkg\mod\cache\download\github.com\wenit\go-mod\@v\v1.1.0.zip] 完成
 ```
 
+### 5. 项目发布
+
+#### 帮助文档
+
+```bash
+go-mod.exe deploy --help
+安装go module到本地module库，并部署至go-mod-proxy
+
+Usage:
+  go-mod.exe deploy [flags]
+
+Flags:
+  -e, --excludes string    排除目录，多个目录使用逗号分割 (default ".svn,.git,.vscode,target,releases")
+  -f, --from string        输入目录 (default ".")
+  -h, --help               help for deploy
+  -p, --proxyaddr string   go-mod-server的api服务地址，端口一般为go-mod-server的代理端口+1
+  -t, --to string          输出目录 (default "./target")
+  -v, --version string     输出版本号 (default "v1.0.0")
+```
+
+
+
+#### 示例
+
+输入：
+
+```bash
+go-mod.exe deploy -f f:/github/go-mod -v v1.1.2 -p http://localhost:8082/upload
+```
+
+输出：
+
+```bash
+2020/10/04 18:37:01 部署私服地址：http://localhost:8082/upload
+2020/10/04 18:37:01 项目打包完成，输出目录：./target
+2020/10/04 18:37:01 项目解压至本地mod仓库，输出目录：C:\Users\zwb\go\pkg\mod
+2020/10/04 18:37:01 复制info文件至缓存目录[C:\Users\zwb\go\pkg\mod\cache\download\github.com\wenit\go-mod\@v\v1.1.2.zip]完成
+2020/10/04 18:37:01 复制mod文件至缓存目录[C:\Users\zwb\go\pkg\mod\cache\download\github.com\wenit\go-mod\@v\v1.1.2.zip] 完成
+2020/10/04 18:37:01 复制zip文件至缓存目录[C:\Users\zwb\go\pkg\mod\cache\download\github.com\wenit\go-mod\@v\v1.1.2.zip]
+完成
+2020/10/04 18:37:01 复制ziphash文件至缓存目录[C:\Users\zwb\go\pkg\mod\cache\download\github.com\wenit\go-mod\@v\v1.1.2.ziphash]完成
+2020/10/04 18:37:01 上传成功[github.com/wenit/go-mod-v1.1.2]
+```
+
 
 
 ## 参考引用
-
-
 
 本项目参考：[pacmod](https://github.com/plexsystems/pacmod) 实现
 

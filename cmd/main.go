@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/wenit/go-mod/internal/cmd/clean"
+	"github.com/wenit/go-mod/internal/cmd/deploy"
 	"github.com/wenit/go-mod/internal/cmd/install"
 	"github.com/wenit/go-mod/internal/cmd/pack"
 	"github.com/wenit/go-mod/internal/version"
@@ -55,6 +56,7 @@ func init() {
 	rootCmd.AddCommand(clean.GetSubCmd())
 	rootCmd.AddCommand(pack.GetSubCmd())
 	rootCmd.AddCommand(install.GetSubCmd())
+	rootCmd.AddCommand(deploy.GetSubCmd())
 
 	// 帮助文档
 	rootCmd.SetHelpCommand(helpCmd)
